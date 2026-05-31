@@ -122,3 +122,22 @@ npm run db:migrate:undo
 # Ver estado de migraciones
 npm run db:status
 \```
+
+## API — Plazas
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET    | `/api/v1/plazas`     | Listar todas las plazas |
+| GET    | `/api/v1/plazas/:id` | Obtener plaza por ID |
+| POST   | `/api/v1/plazas`     | Crear nueva plaza |
+| PUT    | `/api/v1/plazas/:id` | Actualizar plaza |
+| DELETE | `/api/v1/plazas/:id` | Eliminar plaza |
+
+### Campos de Plaza
+
+| Campo   | Tipo    | Valores posibles                              |
+|---------|---------|-----------------------------------------------|
+| codigo  | string  | Ej: "A-01", "B-12"                           |
+| tipo    | enum    | `normal`, `discapacitado`, `moto`            |
+| estado  | enum    | `libre`, `ocupada`, `reservada`, `mantenimiento` |
+| planta  | integer | Número de planta (default: 1)                |

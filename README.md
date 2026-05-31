@@ -25,7 +25,7 @@ Sistema web para gestión de plazas, entradas/salidas y tarifas de estacionamien
 ### 1. Clonar el repositorio
 
 \`\`\`bash
-git clone https://github.com/TU_USUARIO/TU_REPO.git
+git clone https://github.com/Salmon5g/Proyecto-final-.web.git
 cd TU_REPO
 \`\`\`
 

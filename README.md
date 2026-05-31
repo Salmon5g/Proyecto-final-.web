@@ -105,3 +105,20 @@ Copia el archivo de ejemplo y edítalo con tus datos:
 
 ```bash
 cp .env.example .env
+
+## Base de datos
+
+Este proyecto usa **MySQL** con Sequelize ORM.
+
+### Comandos de migración
+
+\```bash
+# Ejecutar todas las migraciones
+npm run db:migrate
+
+# Deshacer todas las migraciones
+npm run db:migrate:undo
+
+# Ver estado de migraciones
+npm run db:status
+\```

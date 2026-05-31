@@ -96,3 +96,12 @@ Verificar que la API funciona:
 \`\`\`
 GET /api/v1/health
 \`\`\`
+
+## Variables de entorno
+
+### En local
+
+Copia el archivo de ejemplo y edítalo con tus datos:
+
+```bash
+cp .env.example .env

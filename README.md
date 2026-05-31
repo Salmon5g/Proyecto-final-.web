@@ -141,3 +141,18 @@ npm run db:status
 | tipo    | enum    | `normal`, `discapacitado`, `moto`            |
 | estado  | enum    | `libre`, `ocupada`, `reservada`, `mantenimiento` |
 | planta  | integer | Número de planta (default: 1)                |
+
+## API — Registros (Estacionamiento activo)
+
+| Método | Ruta | Descripción |
+|--------|------|-------------|
+| GET    | `/api/v1/registros`            | Listar todos los registros |
+| GET    | `/api/v1/registros/activos`    | Vehículos actualmente estacionados |
+| GET    | `/api/v1/registros/:id`        | Obtener registro por ID |
+| POST   | `/api/v1/registros/entrada`    | Registrar entrada de vehículo |
+| PUT    | `/api/v1/registros/:id/salida` | Registrar salida y calcular importe |
+| DELETE | `/api/v1/registros/:id`        | Eliminar registro |
+
+### Lógica de negocio
+- Al registrar **entrada**: la plaza pasa a estado `ocupada`
+- Al registrar **salida**: se calcula el importe (mínimo 1h a 2.50€/h) y la plaza vuelve a `libre`

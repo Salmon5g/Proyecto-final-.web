@@ -36,4 +36,8 @@ const Plaza = sequelize.define('Plaza', {
   underscored: true,
 });
 
+Plaza.associate = (models) => {
+  Plaza.hasMany(models.Registro, { foreignKey: 'plaza_id', as: 'registros' });
+};
+
 module.exports = Plaza;

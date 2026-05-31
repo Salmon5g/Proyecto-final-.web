@@ -1,0 +1,21 @@
+# Dependencias
+node_modules/
+client/node_modules/
+
+# Variables de entorno (¡NUNCA subir!)
+.env
+
+# Builds del frontend
+client/dist/
+client/build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/

@@ -1,6 +1,6 @@
 # Matriz de avance — Proyecto final web
 
-**Alumno:** Barsa Lona  
+**Alumno:** Juan Pablo Saavedra
 **Tema # / slug:** Sistema de Control de Estacionamiento  
 **Hito:** ☑ 1 — 20% (≥5/23)  ☐ 2 — 40% (≥10/23)  ☐ 3 — 100% (23/23)  
 **Fecha:** 31 de mayo de 2026

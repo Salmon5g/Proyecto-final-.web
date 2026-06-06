@@ -34,7 +34,7 @@ API / WEB: `sí` | `no` | `parcial` | `n/a`
 |----|--------|-----|-----|--------|-----------|
 | rq-01 | Gestión de plazas | sí | no | desarrollado | Modelo `Plaza.js`, controlador con CRUD completo, rutas REST. Endpoints: `GET /plazas`, `GET /plazas/:id`, `POST /plazas`, `PUT /plazas/:id`, `DELETE /plazas/:id`. Probado en Postman. Commit: `feat(RQ-01)` |
 | rq-02 | Registro entrada/salida | sí | no | desarrollado | Modelo `Registro.js`, lógica de negocio: entrada ocupa plaza, salida calcula importe (2.50€/h, mínimo 1h) y libera plaza. Endpoints: `POST /registros/entrada`, `PUT /registros/:id/salida`, `GET /registros/activos`. Probado en Postman. Commit: `feat(RQ-02)` |
-| rq-03 | | | | pendiente | |
+| req-03    | CRUD Plazas (API + UI) | ✅ Completado |
 | rq-04 | | | | pendiente | |
 | rq-05 | | | | pendiente | |
 | rq-06 | | | | pendiente | |

@@ -129,7 +129,7 @@ const cargarPlazas = async () => {
     const res = await fetch(`${API}/plazas`, { headers: authHeaders() });
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || 'Error al cargar plazas');
-    plazas.value = data;
+    plazas.value = data.data;
   } catch (e) {
     errorLista.value = e.message;
   } finally {
@@ -214,3 +214,4 @@ const resetForm = () => {
 // Cargar al montar
 onMounted(cargarPlazas);
 </script>
+

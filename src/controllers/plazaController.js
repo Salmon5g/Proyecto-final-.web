@@ -1,5 +1,5 @@
 'use strict';
-const Plaza = require('../models/Plaza');
+const { Plaza } = require('../models');
 
 // GET /api/v1/plazas
 const getAll = async (req, res) => {

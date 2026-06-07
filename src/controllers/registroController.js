@@ -1,11 +1,11 @@
 'use strict';
 const Registro = require('../models/Registro');
-const Plaza = require('../models/Plaza');
 
-// GET /api/v1/registros  — todos los registros
+// GET /api/v1/registros
 const getAll = async (req, res) => {
   try {
     const registros = await Registro.findAll({
+      include: [{ model: Plaza, as: 'plaza', attributes: ['id', 'codigo'] }],
       order: [['entrada', 'DESC']],
     });
     res.json({ ok: true, data: registros });
@@ -14,11 +14,12 @@ const getAll = async (req, res) => {
   }
 };
 
-// GET /api/v1/registros/activos  — vehículos que aún no han salido
+// GET /api/v1/registros/activos
 const getActivos = async (req, res) => {
   try {
     const activos = await Registro.findAll({
       where: { salida: null },
+      include: [{ model: Plaza, as: 'plaza', attributes: ['id', 'codigo'] }],
       order: [['entrada', 'DESC']],
     });
     res.json({ ok: true, data: activos });
@@ -26,7 +27,6 @@ const getActivos = async (req, res) => {
     res.status(500).json({ ok: false, message: error.message });
   }
 };
-
 // GET /api/v1/registros/:id
 const getById = async (req, res) => {
   try {
@@ -69,7 +69,7 @@ const registrarSalida = async (req, res) => {
   try {
     const registro = await Registro.findByPk(req.params.id);
     if (!registro) return res.status(404).json({ ok: false, message: 'Registro no encontrado' });
-    if (registro.salida) return res.status(409).json({ ok: false, message: 'Este vehículo ya registró salida' });
+    if (registro.salida) return res.status(409).json({ ok: false, message: `La plaza ya tiene un vehículo activo. No se puede registrar una segunda entrada.` });
 
     const salida = new Date();
     const entrada = new Date(registro.entrada);

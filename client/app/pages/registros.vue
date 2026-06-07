@@ -55,7 +55,7 @@
             <td>{{ r.plaza?.codigo ?? '—' }}</td>
             <td>{{ formatFecha(r.entrada) }}</td>
             <td>{{ r.salida ? formatFecha(r.salida) : '—' }}</td>
-            <td>{{ r.importe != null ? `${Number(r.importe).toFixed(2)} €` : '—' }}</td>
+            <td>{{ r.importe != null ? `${Math.round(Number(r.importe)).toLocaleString('es-CL')} CLP` : '—' }}</td>
             <td>
               <span :class="['badge-estado', r.salida ? 'cerrado' : 'activo']">
                 {{ r.salida ? 'Cerrado' : 'Activo' }}
@@ -135,11 +135,11 @@
         <div class="card-body">
           <p class="mb-1"><strong>Matrícula:</strong> {{ ticketSalida.matricula }}</p>
           <p class="mb-1"><strong>Tarifa aplicada:</strong> {{ ticketSalida.tarifa_nombre }}</p>
-          <p class="mb-1"><strong>Precio/hora:</strong> {{ Number(ticketSalida.precio_hora).toFixed(2) }} €</p>
+          <p class="mb-1"><strong>Precio/hora:</strong> {{ Math.round(Number(ticketSalida.precio_hora)).toLocaleString('es-CL') }} CLP</p>
           <p class="mb-1"><strong>Horas estacionado:</strong> {{ ticketSalida.horas }} h</p>
           <hr />
           <p class="mb-0 fs-5 fw-bold text-primary">
-            Total: {{ Number(ticketSalida.importe).toFixed(2) }} €
+          Total: {{ Math.round(Number(ticketSalida.importe)).toLocaleString('es-CL') }} CLP
           </p>
         </div>
       </div>
@@ -302,6 +302,11 @@ function confirmarEliminar(registro) {
   registroSeleccionado.value = registro
   formError.value = ''
   modalEliminar.value = true
+}
+
+function cerrarModal() {
+  modalEntrada.value = false
+  formError.value = ''
 }
 
 // ── Acciones ─────────────────────────────────────────────────

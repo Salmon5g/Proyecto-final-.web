@@ -30,7 +30,7 @@
             </tr>
             <tr v-for="t in tarifas" :key="t.id">
               <td class="fw-semibold">{{ t.nombre }}</td>
-              <td>{{ Number(t.precio_hora).toFixed(2) }} €/h</td>
+              <td>{{ Math.round(Number(t.precio_hora)).toLocaleString('es-CL') }} CLP/h</td>
               <td>
                 <span class="badge" :class="badgeTipo(t.tipo_vehiculo)">
                   {{ t.tipo_vehiculo }}
@@ -63,8 +63,8 @@
           <input v-model="form.nombre" class="form-control" placeholder="Ej: Tarifa General" />
         </div>
         <div class="mb-3">
-          <label class="form-label">Precio por hora (€)</label>
-          <input v-model="form.precio_hora" type="number" step="0.01" min="0" class="form-control" placeholder="2.50" />
+          <label class="form-label">Precio por hora (CLP)</label>
+          <input v-model.number="form.precio_hora" type="number" step="1" min="0" class="form-control" placeholder="1500" />
         </div>
         <div class="mb-3">
           <label class="form-label">Tipo de vehículo</label>

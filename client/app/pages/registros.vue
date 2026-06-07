@@ -62,13 +62,14 @@
               </span>
             </td>
             <td class="acciones">
-              <button
-                v-if="!r.salida"
-                class="btn btn-sm btn-warning"
-                @click="confirmarSalida(r)"
-              >
-                🚪 Salida
-              </button>
+              <!-- Línea ~63 del template -->
+<button
+  v-if="!r.salida"
+  class="btn btn-sm btn-warning"
+  @click="abrirModalSalida(r)"   
+>
+  🚪 Salida
+</button>
               <button class="btn btn-sm btn-danger" @click="confirmarEliminar(r)">
                 🗑️
               </button>
@@ -123,23 +124,46 @@
       </div>
     </div>
 
-    <!-- ── Modal Confirmar Salida ── -->
-    <div v-if="modalSalida" class="modal-overlay" @click.self="modalSalida = false">
-      <div class="modal modal-sm">
-        <h2>🚪 Registrar Salida</h2>
-        <p>¿Confirmas la salida del vehículo <strong>{{ registroSeleccionado?.matricula }}</strong>?</p>
-        <p class="hint">Se calculará el importe según el tiempo de permanencia.</p>
+  <!-- Modal Salida -->
+<div v-if="mostrarModalSalida" class="modal-backdrop-custom" @click.self="cerrarModalSalida">
+  <div class="modal-box">
 
-        <div v-if="formError" class="alert alert-error">{{ formError }}</div>
-
-        <div class="modal-actions">
-          <button class="btn btn-secondary" @click="modalSalida = false">Cancelar</button>
-          <button class="btn btn-warning" :disabled="guardando" @click="registrarSalida">
-            {{ guardando ? 'Procesando...' : '🚪 Confirmar Salida' }}
-          </button>
+    <!-- Ticket de salida (después de confirmar) -->
+    <div v-if="ticketSalida">
+      <h5 class="mb-3 text-success">✅ Salida registrada</h5>
+      <div class="card bg-light mb-3">
+        <div class="card-body">
+          <p class="mb-1"><strong>Matrícula:</strong> {{ ticketSalida.matricula }}</p>
+          <p class="mb-1"><strong>Tarifa aplicada:</strong> {{ ticketSalida.tarifa_nombre }}</p>
+          <p class="mb-1"><strong>Precio/hora:</strong> {{ Number(ticketSalida.precio_hora).toFixed(2) }} €</p>
+          <p class="mb-1"><strong>Horas estacionado:</strong> {{ ticketSalida.horas }} h</p>
+          <hr />
+          <p class="mb-0 fs-5 fw-bold text-primary">
+            Total: {{ Number(ticketSalida.importe).toFixed(2) }} €
+          </p>
         </div>
       </div>
+      <div class="text-end">
+        <button class="btn btn-success" @click="cerrarModalSalida">Cerrar</button>
+      </div>
     </div>
+
+    <!-- Confirmación previa -->
+    <div v-else>
+      <h5 class="mb-3">Registrar Salida</h5>
+      <p>¿Confirmar salida del vehículo
+        <strong>{{ registroSalida?.matricula }}</strong>?
+      </p>
+      <p class="text-muted small">Se calculará el importe según la tarifa activa.</p>
+      <div class="alert alert-danger py-2" v-if="errorSalida">{{ errorSalida }}</div>
+      <div class="d-flex gap-2 justify-content-end">
+        <button class="btn btn-secondary" @click="cerrarModalSalida">Cancelar</button>
+        <button class="btn btn-danger" @click="confirmarSalida">Confirmar salida</button>
+      </div>
+    </div>
+
+  </div>
+</div>
 
     <!-- ── Modal Confirmar Eliminar ── -->
     <div v-if="modalEliminar" class="modal-overlay" @click.self="modalEliminar = false">
@@ -182,6 +206,10 @@ const registroSeleccionado = ref(null)
 const guardando          = ref(false)
 const formError          = ref('')
 
+const mostrarModalSalida = ref(false)
+const registroSalida     = ref(null)
+const errorSalida        = ref('')
+
 const form = ref({ matricula: '', plaza_id: null })
 
 // ── Computed ─────────────────────────────────────────────────
@@ -194,6 +222,8 @@ const headers = () => ({
   'Content-Type': 'application/json',
   'Authorization': `Bearer ${localStorage.getItem('token')}`,
 })
+
+const ticketSalida = ref(null); // guarda respuesta de salida exitosa
 
 // ── Fetch ────────────────────────────────────────────────────
 async function cargarRegistros() {
@@ -236,17 +266,38 @@ function abrirModalEntrada() {
   modalEntrada.value = true
 }
 
-function cerrarModal() {
-  modalEntrada.value = false
-  formError.value    = ''
+// Reemplaza la función confirmarSalida actual por estas dos:
+
+function abrirModalSalida(registro) {
+  registroSalida.value = registro
+  ticketSalida.value   = null
+  errorSalida.value    = ''
+  mostrarModalSalida.value = true
 }
 
-function confirmarSalida(registro) {
-  registroSeleccionado.value = registro
-  formError.value = ''
-  modalSalida.value = true
+const confirmarSalida = async () => {
+  if (!registroSalida.value) return
+  errorSalida.value = ''
+  try {
+    const res  = await fetch(`${API}/registros/${registroSalida.value.id}/salida`, {
+      method: 'PUT', headers: headers(),
+    })
+    const data = await res.json()
+    if (!data.ok) { errorSalida.value = data.message; return }
+    ticketSalida.value = data.data
+    await cargarRegistros()
+  } catch {
+    errorSalida.value = 'Error al conectar con la API'
+  }
 }
 
+// Cerrar modal de salida limpiando el ticket
+const cerrarModalSalida = () => {
+  mostrarModalSalida.value = false;
+  registroSalida.value = null;
+  ticketSalida.value = null;
+  errorSalida.value = '';
+};
 function confirmarEliminar(registro) {
   registroSeleccionado.value = registro
   formError.value = ''

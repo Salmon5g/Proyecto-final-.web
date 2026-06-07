@@ -9,6 +9,7 @@ const plazasRouter = require('./routes/plazas');
 const registrosRouter = require('./routes/registros');
 const authRouter = require('./routes/auth');
 const { authenticate } = require('./middlewares/auth');
+const tarifasRouter = require('./routes/tarifas');
 
 // Middlewares globales
 app.use(cors({
@@ -26,5 +27,6 @@ app.use('/api/v1/auth', authRouter);
 // ── Rutas protegidas (requieren JWT) ────────────────────────
 app.use('/api/v1/plazas', authenticate, plazasRouter);
 app.use('/api/v1/registros', authenticate, registrosRouter);
+app.use('/api/v1/tarifas', authenticate, tarifasRouter);
 
 module.exports = app;

@@ -1,5 +1,5 @@
 'use strict';
-const Registro = require('../models/Registro');
+const { Registro, Plaza, Tarifa } = require('../models');
 
 // GET /api/v1/registros
 const getAll = async (req, res) => {
@@ -64,32 +64,44 @@ const registrarEntrada = async (req, res) => {
   }
 };
 
-// PUT /api/v1/registros/:id/salida  — registrar salida y calcular importe
+// PUT /api/v1/registros/:id/salida
 const registrarSalida = async (req, res) => {
   try {
-    const registro = await Registro.findByPk(req.params.id);
+    const registro = await Registro.findByPk(req.params.id, {
+      include: [{ model: Plaza, as: 'plaza' }],
+    });
     if (!registro) return res.status(404).json({ ok: false, message: 'Registro no encontrado' });
-    if (registro.salida) return res.status(409).json({ ok: false, message: `La plaza ya tiene un vehículo activo. No se puede registrar una segunda entrada.` });
+    if (registro.salida) return res.status(409).json({ ok: false, message: 'El vehículo ya registró salida' });
 
-    const salida = new Date();
+    // Buscar tarifa activa (prioridad: misma tipo_vehiculo de la plaza, si no → primera activa)
+    const { Tarifa } = require('../models');
+    let tarifa = await Tarifa.findOne({
+      where: { activa: true, tipo_vehiculo: registro.plaza?.tipo === 'moto' ? 'moto' : 'coche' },
+    });
+    // Fallback: cualquier tarifa activa
+    if (!tarifa) tarifa = await Tarifa.findOne({ where: { activa: true } });
+    // Fallback final: precio por defecto
+    const precioPorHora = tarifa ? parseFloat(tarifa.precio_hora) : 2.50;
+    const tarifa_id     = tarifa ? tarifa.id : null;
+
+    const salida  = new Date();
     const entrada = new Date(registro.entrada);
-
-    // Calcular horas (mínimo 1 hora)
-    const horas = Math.max(1, Math.ceil((salida - entrada) / (1000 * 60 * 60)));
-
-    // Tarifa base: 2.50€/hora (se puede hacer configurable después con RQ-02 tarifas)
-    const precioPorHora = 2.50;
+    const horas   = Math.max(1, Math.ceil((salida - entrada) / (1000 * 60 * 60)));
     const importe = (horas * precioPorHora).toFixed(2);
 
-    await registro.update({ salida, importe });
+    await registro.update({ salida, importe, tarifa_id });
 
-    // Liberar la plaza
-    if (registro.plaza_id) {
-      const plaza = await Plaza.findByPk(registro.plaza_id);
-      if (plaza) await plaza.update({ estado: 'libre' });
-    }
+    if (registro.plaza) await registro.plaza.update({ estado: 'libre' });
 
-    res.json({ ok: true, data: registro, horas, importe });
+    res.json({
+      ok: true,
+      data: {
+        ...registro.toJSON(),
+        horas,
+        precio_hora: precioPorHora,
+        tarifa_nombre: tarifa?.nombre || 'Tarifa base',
+      },
+    });
   } catch (error) {
     res.status(500).json({ ok: false, message: error.message });
   }

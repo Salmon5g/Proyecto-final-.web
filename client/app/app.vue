@@ -28,6 +28,8 @@
           <NuxtLink to="/registros" style="color: #ccc; text-decoration: none; font-size: 0.95rem;" active-class="nav-active">
             Registros
           </NuxtLink>
+
+          <NuxtLink v-if="logueado" to="/tarifas" class="nav-link">Tarifas</NuxtLink>
           <!-- Aquí irán más tabs en el futuro -->
         </template>
       </div>
@@ -72,7 +74,7 @@
         </template>
       </div>
     </nav>
-
+    
     <!-- Contenido de cada página -->
     <NuxtPage />
   </div>

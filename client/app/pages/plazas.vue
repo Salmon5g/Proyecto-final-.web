@@ -1,6 +1,6 @@
 <template>
   <div style="max-width: 900px; margin: 40px auto; padding: 1rem;">
-    <h1>Gestión de Plazas 🅿️</h1>
+    <h1>Gestión de Plazas</h1>
 
     <!-- Formulario crear / editar -->
     <div style="border: 1px solid #ccc; border-radius: 8px; padding: 1.5rem; margin-bottom: 2rem;">

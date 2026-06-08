@@ -16,7 +16,7 @@
       <!-- Izquierda: Logo + tabs -->
       <div style="display: flex; align-items: center; gap: 1.5rem;">
         <span style="font-size: 1.4rem; font-weight: bold; letter-spacing: 1px;">
-          🅿️ ParkControl
+           ParkControl
         </span>
         <NuxtLink to="/" style="color: #ccc; text-decoration: none; font-size: 0.95rem;" active-class="nav-active">
           Inicio
@@ -30,6 +30,9 @@
           </NuxtLink>
 
           <NuxtLink v-if="logueado" to="/tarifas" class="nav-link">Tarifas</NuxtLink>
+          <NuxtLink v-if="logueado" to="/ocupacion" style="color: #ccc; text-decoration: none; font-size: 0.95rem;" active-class="nav-active">
+           Ocupación
+          </NuxtLink>
           <!-- Aquí irán más tabs en el futuro -->
         </template>
       </div>

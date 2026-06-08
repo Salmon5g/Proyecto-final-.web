@@ -7,7 +7,7 @@
       padding: 5rem 2rem;
       text-align: center;
     ">
-      <div style="font-size: 4rem; margin-bottom: 1rem;">🅿️</div>
+      <div style="font-size: 4rem; margin-bottom: 1rem;"></div>
       <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Sistema de Control de Estacionamiento</h1>
       <p style="font-size: 1.1rem; color: #aaa; max-width: 520px; margin: 0 auto 2rem;">
         Gestiona plazas, controla entradas y salidas, y administra tarifas desde un solo lugar.
@@ -74,7 +74,24 @@
           <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">💰</div>
           <h3 style="margin-bottom: 0.5rem;">Tarifas</h3>
           <p style="color: #777; font-size: 0.9rem;">Define el precio por hora según tipo de plaza o vehículo. Próximamente disponible.</p>
-          <p style="margin-top: 1rem; color: #aaa; font-size: 0.85rem;">🔜 Próximamente</p>
+          <NuxtLink v-if="logueado" to="/tarifas">
+          <button style="margin-top: 1rem; padding: 0.4rem 1.2rem; background: #1a1a2e; color: white; border: none; border-radius: 6px; cursor: pointer;">
+              Ir a Tarifas →
+            </button>
+          </NuxtLink>
+          <p v-else style="margin-top: 1rem; color: #aaa; font-size: 0.85rem;">🔒 Requiere sesión</p>
+        </div>
+
+            <div style="background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center;">
+          <div style="font-size: 2.5rem; margin-bottom: 0.75rem;">🗺️</div>
+          <h3 style="margin-bottom: 0.5rem;">Mapa de Plazas</h3>
+          <p style="color: #777; font-size: 0.9rem;">Visualiza todas las plazas en un mapa interactivo. Cambia su estado directamente con un clic.</p>
+          <NuxtLink v-if="logueado" to="/mapa">
+            <button style="margin-top: 1rem; padding: 0.4rem 1.2rem; background: #1a1a2e; color: white; border: none; border-radius: 6px; cursor: pointer;">
+              Ver Mapa →
+            </button>
+          </NuxtLink>
+          <p v-else style="margin-top: 1rem; color: #aaa; font-size: 0.85rem;">🔒 Requiere sesión</p>
         </div>
 
       </div>

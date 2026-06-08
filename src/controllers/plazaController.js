@@ -62,4 +62,34 @@ const remove = async (req, res) => {
   }
 };
 
-module.exports = { getAll, getById, create, update, remove };
+// GET /api/v1/plazas/ocupacion
+const getOcupacion = async (req, res) => {
+  try {
+    const { Op, fn, col, literal } = require('sequelize');
+    const { tipo } = req.query;           // filtro opcional: ?tipo=normal|moto|discapacitado
+
+    const where = {};
+    if (tipo) where.tipo = tipo;
+
+    const resultado = await Plaza.findAll({
+      where,
+      attributes: [
+        'planta',
+        [fn('COUNT', col('id')),                                                    'total'],
+        [fn('SUM', literal("CASE WHEN estado = 'libre'         THEN 1 ELSE 0 END")), 'libre'],
+        [fn('SUM', literal("CASE WHEN estado = 'ocupada'       THEN 1 ELSE 0 END")), 'ocupada'],
+        [fn('SUM', literal("CASE WHEN estado = 'reservada'     THEN 1 ELSE 0 END")), 'reservada'],
+        [fn('SUM', literal("CASE WHEN estado = 'mantenimiento' THEN 1 ELSE 0 END")), 'mantenimiento'],
+      ],
+      group: ['planta'],
+      order: [['planta', 'ASC']],
+      raw: true,
+    });
+
+    res.json({ ok: true, data: resultado });
+  } catch (error) {
+    res.status(500).json({ ok: false, message: error.message });
+  }
+};
+
+module.exports = { getAll, getById, create, update, remove, getOcupacion };

@@ -76,7 +76,7 @@ const registrarSalida = async (req, res) => {
     // Buscar tarifa activa (prioridad: misma tipo_vehiculo de la plaza, si no → primera activa)
     const { Tarifa } = require('../models');
     let tarifa = await Tarifa.findOne({
-      where: { activa: true, tipo_vehiculo: registro.plaza?.tipo === 'moto' ? 'moto' : 'coche' },
+    where: { activa: true, tipo_vehiculo: registro.plaza?.tipo || 'normal' },
     });
     // Fallback: cualquier tarifa activa
     if (!tarifa) tarifa = await Tarifa.findOne({ where: { activa: true } });

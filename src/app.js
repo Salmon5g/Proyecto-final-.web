@@ -11,7 +11,7 @@ const authRouter     = require('./routes/auth');
 const tarifasRouter  = require('./routes/tarifas');
 const { authenticate } = require('./middlewares/auth');
 const errorHandler   = require('./middlewares/errorHandler');   // ← nuevo
-
+const reportesRouter = require('./routes/reportes');
 // Middlewares globales
 app.use(cors({
   origin: process.env.CORS_ORIGIN || 'http://localhost:4000',
@@ -29,7 +29,7 @@ app.use('/api/v1/auth',      authRouter);
 app.use('/api/v1/plazas',    authenticate, plazasRouter);
 app.use('/api/v1/registros', authenticate, registrosRouter);
 app.use('/api/v1/tarifas',   authenticate, tarifasRouter);
-
+app.use('/api/v1/reportes', authenticate, reportesRouter);
 // ── 404: ruta no encontrada ─────────────────────────────────
 app.use((req, res) => {                                         // ← nuevo
   res.status(404).json({ ok: false, message: `Ruta ${req.method} ${req.url} no encontrada.` });

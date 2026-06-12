@@ -1,6 +1,7 @@
 <template>
   <div style="max-width: 400px; margin: 80px auto; padding: 2rem; border: 1px solid #ccc; border-radius: 8px;">
     <h1 style="margin-bottom: 1.5rem;">Iniciar sesión</h1>
+     
 
     <form @submit.prevent="handleLogin">
       <div style="margin-bottom: 1rem;">
@@ -24,6 +25,11 @@
       <button type="submit" :disabled="loading" style="width: 100%; padding: 0.75rem; background: #333; color: white; border: none; border-radius: 4px; cursor: pointer;">
         {{ loading ? 'Ingresando...' : 'Iniciar sesión' }}
       </button>
+     
+      <div class="text-center mt-2">
+    <NuxtLink to="/forgot-password" class="text-muted small">¿Olvidaste tu contraseña?</NuxtLink>
+    </div>
+    
     </form>
 
     <p style="margin-top: 1rem; text-align: center;">

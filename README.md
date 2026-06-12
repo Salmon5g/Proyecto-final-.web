@@ -156,3 +156,37 @@ npm run db:status
 ### Lógica de negocio
 - Al registrar **entrada**: la plaza pasa a estado `ocupada`
 - Al registrar **salida**: se calcula el importe (mínimo 1h a 2.50€/h) y la plaza vuelve a `libre`
+
+---
+
+## CHANGELOG
+
+### v1.1.0 — 2026-06-12
+
+#### AC — Agregar campo `tipo_pago` a `registros`
+
+**Tipo de cambio:** AC (Agregar Campo)
+
+**Qué se agregó:**
+- Columna `tipo_pago ENUM('efectivo', 'tarjeta', 'app')` en la tabla `registros`.
+- Valor por defecto: `efectivo` (compatibilidad con registros previos).
+
+**Por qué:**
+Registrar el método de pago utilizado al cerrar cada estancia permite generar reportes financieros por tipo y dar trazabilidad al operador.
+
+**Archivos modificados:**
+| Archivo | Cambio |
+|---|---|
+| `src/migrations/20260612000001-add-tipo-pago-to-registros.js` | Nueva migración versionada |
+| `src/models/Registro.js` | Campo `tipo_pago` añadido al modelo |
+| `src/controllers/registroController.js` | `PUT /registros/:id/salida` acepta y valida `tipo_pago` |
+
+**Endpoint afectado:**
+PUT /api/v1/registros/:id/salida
+Body: { "tipo_pago": "efectivo" | "tarjeta" | "app" }
+
+- Si se omite → valor por defecto `efectivo`
+- Si se envía un valor inválido → `422 Unprocessable Entity`
+
+**Cómo ejecutar la migración:**
+npm run db:migrate

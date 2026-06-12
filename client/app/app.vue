@@ -33,6 +33,10 @@
           <NuxtLink v-if="logueado" to="/ocupacion" style="color: #ccc; text-decoration: none; font-size: 0.95rem;" active-class="nav-active">
            Ocupación
           </NuxtLink>
+
+          <NuxtLink v-if="logueado" to="/reportes" style="color: #ccc; text-decoration: none; font-size: 0.95rem;" active-class="nav-active">
+           Reportes
+          </NuxtLink>
           <!-- Aquí irán más tabs en el futuro -->
         </template>
       </div>

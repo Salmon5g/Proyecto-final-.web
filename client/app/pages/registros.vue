@@ -85,7 +85,7 @@
 
     <!-- ── Modal Nueva Entrada ── -->
     <div v-if="modalEntrada" class="modal-overlay" @click.self="cerrarModal">
-      <div class="modal">
+      <div class="modal-box">
         <h2>🚗 Registrar Entrada</h2>
 
         <div class="form-group">
@@ -167,7 +167,7 @@
 
     <!-- ── Modal Confirmar Eliminar ── -->
     <div v-if="modalEliminar" class="modal-overlay" @click.self="modalEliminar = false">
-      <div class="modal modal-sm">
+      <div class="modal-box modal-sm">
         <h2>⚠️ Eliminar Registro</h2>
         <p>¿Eliminar el registro de <strong>{{ registroSeleccionado?.matricula }}</strong>?</p>
         <p class="hint">Esta acción no se puede deshacer.</p>
@@ -458,16 +458,16 @@ tr:hover td { background: #f9fafb; }
 /* Modal */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-  display: flex; align-items: center; justify-content: center; z-index: 50;
+  display: flex; align-items: center; justify-content: center; z-index: 1060;
 }
-.modal {
+.modal-box {
   background: white; border-radius: 12px; padding: 2rem;
   width: 100%; max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,0.15);
 }
-.modal.modal-sm { max-width: 380px; }
-.modal h2 { margin: 0 0 1.25rem; font-size: 1.3rem; }
-.modal p { color: #4b5563; margin: 0.3rem 0; }
-.modal .hint { font-size: 0.85rem; color: #9ca3af; }
+.modal-box.modal-sm { max-width: 380px; }
+.modal-box h2 { margin: 0 0 1.25rem; font-size: 1.3rem; }
+.modal-box p { color: #4b5563; margin: 0.3rem 0; }
+.modal-box .hint { font-size: 0.85rem; color: #9ca3af; }
 
 .form-group { margin-bottom: 1rem; }
 .form-group label { display: block; font-weight: 500; margin-bottom: 0.4rem; font-size: 0.9rem; }

@@ -42,7 +42,8 @@ const getById = async (req, res) => {
 const registrarEntrada = async (req, res) => {
   try {
     const { matricula, plaza_id } = req.body;
-    if (!matricula) return res.status(400).json({ ok: false, message: 'La matrícula es obligatoria' });
+    if (!matricula || !matricula.trim())
+      return res.status(400).json({ ok: false, message: 'La matrícula es obligatoria' });
 
     // Marcar plaza como ocupada si se proporcionó
     if (plaza_id) {
@@ -52,11 +53,11 @@ const registrarEntrada = async (req, res) => {
       await plaza.update({ estado: 'ocupada' });
     }
 
-    const registro = await Registro.create({
-      matricula,
-      plaza_id: plaza_id || null,
-      entrada: new Date(),
-    });
+   const registro = await Registro.create({
+    matricula: matricula.trim().toUpperCase(),  // ← cambio aquí
+    plaza_id: plaza_id || null,
+    entrada: new Date(),
+   });
 
     res.status(201).json({ ok: true, data: registro });
   } catch (error) {
@@ -112,6 +113,10 @@ const remove = async (req, res) => {
   try {
     const registro = await Registro.findByPk(req.params.id);
     if (!registro) return res.status(404).json({ ok: false, message: 'Registro no encontrado' });
+
+    if (!registro.salida)
+      return res.status(409).json({ ok: false, message: 'No se puede eliminar un registro activo. Registra la salida primero' });
+
     await registro.destroy();
     res.json({ ok: true, message: 'Registro eliminado correctamente' });
   } catch (error) {

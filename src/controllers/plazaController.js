@@ -1,5 +1,7 @@
 'use strict';
 const { Plaza } = require('../models');
+const TIPOS_PLAZA  = ['normal', 'discapacitado', 'moto'];
+const ESTADOS_PLAZA = ['libre', 'ocupada', 'reservada', 'mantenimiento'];
 
 // GET /api/v1/plazas
 const getAll = async (req, res) => {
@@ -26,13 +28,24 @@ const getById = async (req, res) => {
 const create = async (req, res) => {
   try {
     const { codigo, tipo, estado, planta } = req.body;
-    if (!codigo) return res.status(400).json({ ok: false, message: 'El campo código es obligatorio' });
-    const plaza = await Plaza.create({ codigo, tipo, estado, planta });
+
+    // Obligatorio
+    if (!codigo || !codigo.trim())
+      return res.status(400).json({ ok: false, message: 'El campo código es obligatorio' });
+
+    // Enum tipo
+    if (tipo && !TIPOS_PLAZA.includes(tipo))
+      return res.status(422).json({ ok: false, message: `Tipo inválido. Valores permitidos: ${TIPOS_PLAZA.join(', ')}` });
+
+    // Enum estado
+    if (estado && !ESTADOS_PLAZA.includes(estado))
+      return res.status(422).json({ ok: false, message: `Estado inválido. Valores permitidos: ${ESTADOS_PLAZA.join(', ')}` });
+
+    const plaza = await Plaza.create({ codigo: codigo.trim().toUpperCase(), tipo, estado, planta });
     res.status(201).json({ ok: true, data: plaza });
   } catch (error) {
-    if (error.name === 'SequelizeUniqueConstraintError') {
+    if (error.name === 'SequelizeUniqueConstraintError')
       return res.status(409).json({ ok: false, message: 'Ya existe una plaza con ese código' });
-    }
     res.status(500).json({ ok: false, message: error.message });
   }
 };
@@ -42,10 +55,20 @@ const update = async (req, res) => {
   try {
     const plaza = await Plaza.findByPk(req.params.id);
     if (!plaza) return res.status(404).json({ ok: false, message: 'Plaza no encontrada' });
+
     const { codigo, tipo, estado, planta } = req.body;
+
+    if (tipo && !TIPOS_PLAZA.includes(tipo))
+      return res.status(422).json({ ok: false, message: `Tipo inválido. Valores permitidos: ${TIPOS_PLAZA.join(', ')}` });
+
+    if (estado && !ESTADOS_PLAZA.includes(estado))
+      return res.status(422).json({ ok: false, message: `Estado inválido. Valores permitidos: ${ESTADOS_PLAZA.join(', ')}` });
+
     await plaza.update({ codigo, tipo, estado, planta });
     res.json({ ok: true, data: plaza });
   } catch (error) {
+    if (error.name === 'SequelizeUniqueConstraintError')
+      return res.status(409).json({ ok: false, message: 'Ya existe una plaza con ese código' });
     res.status(500).json({ ok: false, message: error.message });
   }
 };

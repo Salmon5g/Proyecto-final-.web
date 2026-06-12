@@ -1,5 +1,6 @@
 'use strict';
 const { Tarifa } = require('../models');
+const TIPOS_VEHICULO = ['normal', 'discapacitado', 'moto'];
 
 // GET /api/v1/tarifas
 const getAll = async (req, res) => {
@@ -26,9 +27,20 @@ const getOne = async (req, res) => {
 const create = async (req, res) => {
   try {
     const { nombre, precio_hora, tipo_vehiculo, activa } = req.body;
-    if (!nombre || precio_hora == null)
-      return res.status(422).json({ ok: false, message: 'nombre y precio_hora son obligatorios' });
-    const tarifa = await Tarifa.create({ nombre, precio_hora, tipo_vehiculo, activa });
+
+    if (!nombre || !nombre.trim())
+      return res.status(400).json({ ok: false, message: 'El campo nombre es obligatorio' });
+
+    if (precio_hora == null)
+      return res.status(422).json({ ok: false, message: 'El campo precio_hora es obligatorio' });
+
+    if (isNaN(Number(precio_hora)) || Number(precio_hora) <= 0)
+      return res.status(422).json({ ok: false, message: 'precio_hora debe ser un número mayor que 0' });
+
+    if (tipo_vehiculo && !TIPOS_VEHICULO.includes(tipo_vehiculo))
+      return res.status(422).json({ ok: false, message: `tipo_vehiculo inválido. Valores permitidos: ${TIPOS_VEHICULO.join(', ')}` });
+
+    const tarifa = await Tarifa.create({ nombre: nombre.trim(), precio_hora, tipo_vehiculo, activa });
     res.status(201).json({ ok: true, data: tarifa });
   } catch (error) {
     res.status(500).json({ ok: false, message: error.message });
@@ -40,7 +52,15 @@ const update = async (req, res) => {
   try {
     const tarifa = await Tarifa.findByPk(req.params.id);
     if (!tarifa) return res.status(404).json({ ok: false, message: 'Tarifa no encontrada' });
+
     const { nombre, precio_hora, tipo_vehiculo, activa } = req.body;
+
+    if (precio_hora != null && (isNaN(Number(precio_hora)) || Number(precio_hora) <= 0))
+      return res.status(422).json({ ok: false, message: 'precio_hora debe ser un número mayor que 0' });
+
+    if (tipo_vehiculo && !TIPOS_VEHICULO.includes(tipo_vehiculo))
+      return res.status(422).json({ ok: false, message: `tipo_vehiculo inválido. Valores permitidos: ${TIPOS_VEHICULO.join(', ')}` });
+
     await tarifa.update({ nombre, precio_hora, tipo_vehiculo, activa });
     res.json({ ok: true, data: tarifa });
   } catch (error) {
@@ -53,6 +73,12 @@ const remove = async (req, res) => {
   try {
     const tarifa = await Tarifa.findByPk(req.params.id);
     if (!tarifa) return res.status(404).json({ ok: false, message: 'Tarifa no encontrada' });
+
+    const { Registro } = require('../models');
+    const enUso = await Registro.count({ where: { tarifa_id: tarifa.id } });
+    if (enUso > 0)
+      return res.status(409).json({ ok: false, message: `No se puede eliminar: la tarifa está asociada a ${enUso} registro(s)` });
+
     await tarifa.destroy();
     res.json({ ok: true, message: 'Tarifa eliminada' });
   } catch (error) {

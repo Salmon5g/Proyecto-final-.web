@@ -1,12 +1,19 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: 'mysql',
+const dbUrl = process.env.DATABASE_URL || '';
+const dialect = dbUrl.startsWith('postgresql') || dbUrl.startsWith('postgres')
+  ? 'postgres'
+  : 'mysql';
+
+const dialectOptions = dialect === 'postgres'
+  ? { ssl: { require: true, rejectUnauthorized: false } }
+  : { charset: 'utf8mb4' };
+
+const sequelize = new Sequelize(dbUrl, {
+  dialect,
   logging: process.env.NODE_ENV === 'development' ? console.log : false,
-  dialectOptions: {
-    charset: 'utf8mb4',
-  },
+  dialectOptions,
   define: {
     timestamps: true,
     underscored: true,

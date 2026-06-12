@@ -1,0 +1,1174 @@
+{
+  "info": {
+    "_postman_id": "a2e7d2dd-67f2-4c61-bdd2-e439ae57f77f",
+    "name": "Estacionamiento",
+    "description": "Colección completa para la API de control de estacionamiento.\n\n## Uso rápido\n1. Ajusta la variable `baseUrl` si tu servidor corre en un puerto distinto al `3000`.\n2. Ejecuta **Auth → Registrar usuario** para crear una cuenta.\n3. Ejecuta **Auth → Login** — el token JWT se guarda automáticamente en `{{token}}`.\n4. El resto de carpetas usan `{{token}}` de forma transparente.\n\n## Variables de colección\n| Variable | Valor por defecto | Descripción |\n|----------|-------------------|-------------|\n| `baseUrl` | `http://localhost:3000/api/v1` | URL base de la API |\n| `token` | *(vacío)* | JWT capturado al hacer Login |\n\n## Casos de error incluidos\n- `401` — acceso sin token o credenciales inválidas\n- `409` — conflictos (email duplicado, plaza ocupada, código duplicado, tarifa en uso)\n- `422` — validación de datos (tipo inválido, precio negativo)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54212896",
+    "_collection_link": "https://go.postman.co/collection/54212896-a2e7d2dd-67f2-4c61-bdd2-e439ae57f77f?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Registrar usuario",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Juan Test\",\n  \"email\": \"juan@test.com\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Crea una nueva cuenta. Devuelve 201 con los datos del usuario (sin password).\n\n**Respuesta esperada:** `201 Created`\n```json\n{ \"ok\": true, \"data\": { \"id\": 1, \"nombre\": \"Juan Test\", \"email\": \"juan@test.com\" } }\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Login — guarda token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.ok && res.token) {",
+                  "    pm.collectionVariables.set('token', res.token);",
+                  "    console.log('✅ Token guardado:', res.token.substring(0, 30) + '...');",
+                  "} else {",
+                  "    console.warn('⚠️ No se pudo capturar el token');",
+                  "}",
+                  "pm.test('Login exitoso - status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Respuesta contiene token', () => pm.expect(res.token).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"juan@test.com\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Autentica al usuario y retorna un JWT. El script de Tests captura automáticamente el token en la variable de colección `token`.\n\n**Respuesta esperada:** `200 OK`\n```json\n{ \"ok\": true, \"token\": \"eyJ...\", \"usuario\": { ... } }\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Login —  401 credenciales inválidas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 401 - credenciales inválidas', () => pm.response.to.have.status(401));",
+                  "pm.test('Mensaje de error presente', () => {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.ok).to.be.false;",
+                  "    pm.expect(res.message).to.include('Credenciales');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"juan@test.com\",\n  \"password\": \"password_incorrecto\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Intento de login con contraseña incorrecta.\n\n**Respuesta esperada:** `401 Unauthorized`\n```json\n{ \"ok\": false, \"message\": \"Credenciales inválidas\" }\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar usuario — 409 email duplicado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 409 - email duplicado', () => pm.response.to.have.status(409));",
+                  "pm.test('Mensaje de conflicto presente', () => {",
+                  "    const res = pm.response.json();",
+                  "    pm.expect(res.ok).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Otro User\",\n  \"email\": \"juan@test.com\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Intento de registro con un email ya existente en la base de datos.\n\n**Respuesta esperada:** `409 Conflict`\n```json\n{ \"ok\": false, \"message\": \"Ya existe una cuenta con ese email\" }\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar usuario — 400 campos faltantes",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 400 - campos faltantes', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"incompleto@test.com\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Intento de registro sin enviar el campo `nombre` ni `password`.\n\n**Respuesta esperada:** `400 Bad Request`\n```json\n{ \"ok\": false, \"message\": \"Nombre, email y contraseña son obligatorios\" }\n```"
+          },
+          "response": []
+        }
+      ],
+      "description": "Registro, login y gestión de contraseñas. Las rutas de Auth son públicas (no requieren JWT)."
+    },
+    {
+      "name": "Plazas",
+      "item": [
+        {
+          "name": "Listar todas las plazas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plazas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plazas"
+              ]
+            },
+            "description": "Retorna el listado completo de plazas de estacionamiento.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK` con array de plazas."
+          },
+          "response": []
+        },
+        {
+          "name": "Ocupación por planta",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plazas/ocupacion",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plazas",
+                "ocupacion"
+              ]
+            },
+            "description": "Retorna estadísticas de ocupación agrupadas por planta (libres, ocupadas, reservadas, en mantenimiento).\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK`"
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener una plaza",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plazas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plazas",
+                "1"
+              ]
+            },
+            "description": "Retorna el detalle de una plaza por su ID.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK` o `404 Not Found`"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear plaza",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"A-01\",\n  \"tipo\": \"normal\",\n  \"estado\": \"libre\",\n  \"planta\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plazas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plazas"
+              ]
+            },
+            "description": "Crea una nueva plaza. `codigo` es obligatorio y único.\n\n**Requiere:** JWT\n**Respuesta esperada:** `201 Created`"
+          },
+          "response": []
+        },
+        {
+          "name": "Modificar plaza",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"mantenimiento\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plazas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plazas",
+                "1"
+              ]
+            },
+            "description": "Actualiza los datos de una plaza existente.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK`"
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar plaza",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/plazas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plazas",
+                "1"
+              ]
+            },
+            "description": "Elimina una plaza por ID.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK`"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear plaza — 409 código duplicado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 409 - código duplicado', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"A-01\",\n  \"tipo\": \"normal\",\n  \"planta\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plazas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plazas"
+              ]
+            },
+            "description": "Intento de crear una plaza con un código que ya existe.\n\n**Respuesta esperada:** `409 Conflict`\n```json\n{ \"ok\": false, \"message\": \"Ya existe una plaza con ese código\" }\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear plaza — 422 tipo inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 422 - tipo inválido', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"codigo\": \"B-99\",\n  \"tipo\": \"camion\",\n  \"planta\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plazas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plazas"
+              ]
+            },
+            "description": "Intento de crear una plaza con un valor de `tipo` no permitido.\nValores permitidos: `normal`, `discapacitado`, `moto`.\n\n**Respuesta esperada:** `422 Unprocessable Entity`\n```json\n{ \"ok\": false, \"message\": \"Tipo inválido. Valores permitidos: normal, discapacitado, moto\" }\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Sin token — 401 no autorizado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 401 - sin token', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/plazas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plazas"
+              ]
+            },
+            "description": "Acceso a ruta protegida sin enviar el header `Authorization`.\n\n**Respuesta esperada:** `401 Unauthorized`"
+          },
+          "response": []
+        }
+      ],
+      "description": "CRUD de plazas y consulta de ocupación por planta. Todas las rutas requieren JWT."
+    },
+    {
+      "name": "Tarifas",
+      "item": [
+        {
+          "name": "Listar todas las tarifas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tarifas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tarifas"
+              ]
+            },
+            "description": "Retorna todas las tarifas ordenadas por nombre.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK`"
+          },
+          "response": []
+        },
+        {
+          "name": "Obtener una tarifa",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tarifas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tarifas",
+                "1"
+              ]
+            },
+            "description": "Retorna el detalle de una tarifa por ID.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK` o `404 Not Found`"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear tarifa",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Tarifa normal\",\n  \"precio_hora\": 2.5,\n  \"tipo_vehiculo\": \"normal\",\n  \"activa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarifas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tarifas"
+              ]
+            },
+            "description": "Crea una nueva tarifa de cobro.\n\n**Requiere:** JWT\n**Respuesta esperada:** `201 Created`"
+          },
+          "response": []
+        },
+        {
+          "name": "Modificar tarifa",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"precio_hora\": 3.0,\n  \"activa\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarifas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tarifas",
+                "1"
+              ]
+            },
+            "description": "Actualiza los datos de una tarifa existente.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK`"
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar tarifa",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tarifas/99",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tarifas",
+                "99"
+              ]
+            },
+            "description": "Elimina una tarifa. Falla si está asociada a registros existentes.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK`"
+          },
+          "response": []
+        },
+        {
+          "name": "Crear tarifa —  422 precio inválido",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 422 - precio inválido', () => pm.response.to.have.status(422));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombre\": \"Tarifa mala\",\n  \"precio_hora\": -5,\n  \"tipo_vehiculo\": \"normal\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tarifas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tarifas"
+              ]
+            },
+            "description": "Intento de crear tarifa con `precio_hora` negativo o cero.\n\n**Respuesta esperada:** `422 Unprocessable Entity`\n```json\n{ \"ok\": false, \"message\": \"precio_hora debe ser un número mayor que 0\" }\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar tarifa —  409 tarifa en uso",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 409 - tarifa en uso', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tarifas/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tarifas",
+                "1"
+              ]
+            },
+            "description": "Intento de eliminar una tarifa que está referenciada por registros.\n\n**Respuesta esperada:** `409 Conflict`\n```json\n{ \"ok\": false, \"message\": \"No se puede eliminar: la tarifa está asociada a N registro(s)\" }\n```"
+          },
+          "response": []
+        }
+      ],
+      "description": "CRUD de tarifas de cobro por hora. Todas las rutas requieren JWT."
+    },
+    {
+      "name": "Registros",
+      "item": [
+        {
+          "name": "Registrar entrada",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"matricula\": \"AB-1234\",\n  \"plaza_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registros/entrada",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registros",
+                "entrada"
+              ]
+            },
+            "description": "Registra la entrada de un vehículo. Marca la plaza como `ocupada`.\n\n**Requiere:** JWT\n**Respuesta esperada:** `201 Created`"
+          },
+          "response": []
+        },
+        {
+          "name": "Listar registros activos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registros/activos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registros",
+                "activos"
+              ]
+            },
+            "description": "Retorna vehículos que aún no han registrado salida.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK`"
+          },
+          "response": []
+        },
+        {
+          "name": "Listar todos los registros",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registros"
+              ]
+            },
+            "description": "Retorna el historial completo de entradas y salidas.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK`"
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar salida",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registros/1/salida",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registros",
+                "1",
+                "salida"
+              ]
+            },
+            "description": "Registra la salida del vehículo, calcula el importe y libera la plaza.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK` con `horas`, `precio_hora` e `importe`."
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar registro",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registros/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registros",
+                "1"
+              ]
+            },
+            "description": "Elimina un registro. Solo se permiten registros con salida ya registrada.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK`"
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar entrada —  409 plaza ocupada",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 409 - plaza ocupada', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"matricula\": \"XY-9999\",\n  \"plaza_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/registros/entrada",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registros",
+                "entrada"
+              ]
+            },
+            "description": "Intento de asignar una entrada a una plaza que ya está `ocupada`.\n\n**Respuesta esperada:** `409 Conflict`\n```json\n{ \"ok\": false, \"message\": \"La plaza ya está ocupada\" }\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar salida —  409 ya tiene salida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 409 - ya tiene salida', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registros/1/salida",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registros",
+                "1",
+                "salida"
+              ]
+            },
+            "description": "Intento de registrar salida en un registro que ya tiene salida.\n\n**Respuesta esperada:** `409 Conflict`\n```json\n{ \"ok\": false, \"message\": \"El vehículo ya registró salida\" }\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Eliminar registro —  409 registro activo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 409 - registro activo', () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/registros/2",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "registros",
+                "2"
+              ]
+            },
+            "description": "Intento de eliminar un registro cuyo vehículo aún está en el estacionamiento (sin salida).\n\n**Respuesta esperada:** `409 Conflict`\n```json\n{ \"ok\": false, \"message\": \"No se puede eliminar un registro activo. Registra la salida primero\" }\n```"
+          },
+          "response": []
+        }
+      ],
+      "description": "Entrada y salida de vehículos. Cálculo automático de importe al registrar salida. Todas las rutas requieren JWT."
+    },
+    {
+      "name": "Reportes",
+      "item": [
+        {
+          "name": "Reporte por zona (todos)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reportes/zona",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reportes",
+                "zona"
+              ]
+            },
+            "description": "Retorna ingresos, total de registros y duración promedio agrupados por planta.\nSolo incluye registros con salida registrada.\n\n**Requiere:** JWT\n**Respuesta esperada:** `200 OK`\n```json\n{\n  \"ok\": true,\n  \"data\": {\n    \"zonas\": [ { \"zona\": 1, \"total_registros\": 10, \"ingresos_totales\": 250.00, \"promedio_horas\": 1.5 } ],\n    \"totales\": { \"total_registros\": 10, \"ingresos_totales\": 250.00 }\n  }\n}\n```"
+          },
+          "response": []
+        },
+        {
+          "name": "Reporte por zona — rango de fechas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reportes/zona?desde=2026-01-01&hasta=2026-12-31",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reportes",
+                "zona"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2026-12-31"
+                }
+              ]
+            },
+            "description": "Mismo reporte filtrado por rango de fechas (`desde` y `hasta` en formato `YYYY-MM-DD`).\n\n**Requiere:** JWT\n**Query params:**\n- `desde`: fecha inicio (inclusive)\n- `hasta`: fecha fin (inclusive)\n\n**Respuesta esperada:** `200 OK`"
+          },
+          "response": []
+        },
+        {
+          "name": "Reporte por zona — 401 sin token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Error 401 - sin token en reportes', () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reportes/zona",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reportes",
+                "zona"
+              ]
+            },
+            "description": "Acceso al reporte sin token JWT.\n\n**Respuesta esperada:** `401 Unauthorized`"
+          },
+          "response": []
+        }
+      ],
+      "description": "Reporte de ingresos y actividad agrupado por zona/planta. Requiere JWT."
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api/v1"
+    },
+    {
+      "key": "token",
+      "value": ""
+    }
+  ]
+}

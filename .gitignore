@@ -3,7 +3,7 @@ node_modules/
 client/node_modules/
 
 # Variables de entorno (¡NUNCA subir!)
-.env
+#.env
 
 # Builds del frontend
 client/dist/

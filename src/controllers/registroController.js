@@ -27,6 +27,7 @@ const getActivos = async (req, res) => {
     res.status(500).json({ ok: false, message: error.message });
   }
 };
+
 // GET /api/v1/registros/:id
 const getById = async (req, res) => {
   try {
@@ -38,14 +39,13 @@ const getById = async (req, res) => {
   }
 };
 
-// POST /api/v1/registros/entrada  — registrar entrada de vehículo
+// POST /api/v1/registros/entrada
 const registrarEntrada = async (req, res) => {
   try {
     const { matricula, plaza_id } = req.body;
     if (!matricula || !matricula.trim())
       return res.status(400).json({ ok: false, message: 'La matrícula es obligatoria' });
 
-    // Marcar plaza como ocupada si se proporcionó
     if (plaza_id) {
       const plaza = await Plaza.findByPk(plaza_id);
       if (!plaza) return res.status(404).json({ ok: false, message: 'Plaza no encontrada' });
@@ -53,11 +53,11 @@ const registrarEntrada = async (req, res) => {
       await plaza.update({ estado: 'ocupada' });
     }
 
-   const registro = await Registro.create({
-    matricula: matricula.trim().toUpperCase(),  // ← cambio aquí
-    plaza_id: plaza_id || null,
-    entrada: new Date(),
-   });
+    const registro = await Registro.create({
+      matricula: matricula.trim().toUpperCase(),
+      plaza_id: plaza_id || null,
+      entrada: new Date(),
+    });
 
     res.status(201).json({ ok: true, data: registro });
   } catch (error) {
@@ -66,22 +66,30 @@ const registrarEntrada = async (req, res) => {
 };
 
 // PUT /api/v1/registros/:id/salida
+// Body opcional: { tipo_pago: 'efectivo' | 'tarjeta' | 'app' }
 const registrarSalida = async (req, res) => {
   try {
+    const TIPOS_PAGO_VALIDOS = ['efectivo', 'tarjeta', 'app'];
+    const tipo_pago = req.body.tipo_pago || 'efectivo';
+
+    if (!TIPOS_PAGO_VALIDOS.includes(tipo_pago)) {
+      return res.status(422).json({
+        ok: false,
+        message: `tipo_pago inválido. Valores permitidos: ${TIPOS_PAGO_VALIDOS.join(', ')}`,
+      });
+    }
+
     const registro = await Registro.findByPk(req.params.id, {
       include: [{ model: Plaza, as: 'plaza' }],
     });
     if (!registro) return res.status(404).json({ ok: false, message: 'Registro no encontrado' });
     if (registro.salida) return res.status(409).json({ ok: false, message: 'El vehículo ya registró salida' });
 
-    // Buscar tarifa activa (prioridad: misma tipo_vehiculo de la plaza, si no → primera activa)
-    const { Tarifa } = require('../models');
     let tarifa = await Tarifa.findOne({
-    where: { activa: true, tipo_vehiculo: registro.plaza?.tipo || 'normal' },
+      where: { activa: true, tipo_vehiculo: registro.plaza?.tipo || 'normal' },
     });
-    // Fallback: cualquier tarifa activa
     if (!tarifa) tarifa = await Tarifa.findOne({ where: { activa: true } });
-    // Fallback final: precio por defecto
+
     const precioPorHora = tarifa ? parseFloat(tarifa.precio_hora) : 2.50;
     const tarifa_id     = tarifa ? tarifa.id : null;
 
@@ -90,7 +98,7 @@ const registrarSalida = async (req, res) => {
     const horas   = Math.max(1, Math.ceil((salida - entrada) / (1000 * 60 * 60)));
     const importe = (horas * precioPorHora).toFixed(2);
 
-    await registro.update({ salida, importe, tarifa_id });
+    await registro.update({ salida, importe, tarifa_id, tipo_pago });
 
     if (registro.plaza) await registro.plaza.update({ estado: 'libre' });
 

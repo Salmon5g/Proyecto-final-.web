@@ -26,6 +26,12 @@ const Registro = sequelize.define('Registro', {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: true,
   },
+  // AC (2026-06-12): método de pago registrado al cerrar la estancia
+  tipo_pago: {
+    type: DataTypes.ENUM('efectivo', 'tarjeta', 'app'),
+    allowNull: false,
+    defaultValue: 'efectivo',
+  },
   plaza_id: {
     type: DataTypes.INTEGER,
     allowNull: true,

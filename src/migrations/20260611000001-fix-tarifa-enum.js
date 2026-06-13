@@ -2,6 +2,12 @@
 
 module.exports = {
   async up(queryInterface, Sequelize) {
+    const dialect = queryInterface.sequelize.getDialect();
+
+    // En PostgreSQL (Railway) la BD es nueva, el ENUM ya viene correcto
+    // desde create-tarifas. Solo aplicamos el fix en MySQL (local).
+    if (dialect === 'postgres') return;
+
     // 1. Loosen the column to VARCHAR so we can freely update values
     await queryInterface.sequelize.query(`
       ALTER TABLE tarifas
@@ -27,6 +33,9 @@ module.exports = {
   },
 
   async down(queryInterface, Sequelize) {
+    const dialect = queryInterface.sequelize.getDialect();
+    if (dialect === 'postgres') return;
+
     await queryInterface.sequelize.query(`
       ALTER TABLE tarifas
       MODIFY tipo_vehiculo VARCHAR(50) NOT NULL DEFAULT 'coche'

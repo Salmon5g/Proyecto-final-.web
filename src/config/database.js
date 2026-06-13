@@ -1,5 +1,11 @@
 const { Sequelize } = require('sequelize');
+const pg = require('pg');
 require('dotenv').config();
+
+// Fix global para pg 8.x en Railway/Heroku: evita el SSL "unexpected eof"
+if (process.env.DATABASE_URL) {
+  pg.defaults.ssl = { rejectUnauthorized: false };
+}
 
 let sequelize;
 
@@ -10,7 +16,6 @@ if (process.env.DATABASE_URL) {
     logging: false,
     dialectOptions: {
       ssl: {
-        require: true,
         rejectUnauthorized: false,
       },
     },

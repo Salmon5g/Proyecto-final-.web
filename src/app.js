@@ -16,12 +16,16 @@ const reportesRouter = require('./routes/reportes');
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Permite localhost y cualquier subdominio de vercel.app
+    const allowed = [
+      process.env.CORS_ORIGIN,         // URL específica de producción (ej: https://tu-app.vercel.app)
+    ].filter(Boolean);
+
     if (
       !origin ||
       origin.includes('localhost') ||
       origin.endsWith('.vercel.app') ||
-      origin === process.env.CORS_ORIGIN
+      origin.endsWith('.netlify.app') ||
+      allowed.includes(origin)
     ) {
       callback(null, true);
     } else {

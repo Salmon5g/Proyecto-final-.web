@@ -8,12 +8,16 @@ async function startServer() {
   try {
     await sequelize.authenticate();
     console.log('✅ Conexión a la base de datos establecida correctamente.');
-    
+
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.error('❌ No se pudo conectar a la base de datos:', error.message);
+    // Log completo para diagnóstico en Railway
+    console.error('❌ No se pudo conectar a la base de datos:');
+    console.error('   Mensaje:', error.message);
+    console.error('   Código:', error.code || 'N/A');
+    console.error('   Stack:', error.stack);
     process.exit(1);
   }
 }

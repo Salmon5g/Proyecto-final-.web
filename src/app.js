@@ -13,8 +13,19 @@ const { authenticate } = require('./middlewares/auth');
 const errorHandler   = require('./middlewares/errorHandler');   // ← nuevo
 const reportesRouter = require('./routes/reportes');
 // Middlewares globales
+// ✅ Nuevo
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:4000')
+  .split(',')
+  .map(o => o.trim());
+
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:4000',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());

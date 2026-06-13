@@ -13,14 +13,16 @@ const { authenticate } = require('./middlewares/auth');
 const errorHandler   = require('./middlewares/errorHandler');   // ← nuevo
 const reportesRouter = require('./routes/reportes');
 // Middlewares globales
-// ✅ Nuevo
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:4000')
-  .split(',')
-  .map(o => o.trim());
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    // Permite localhost y cualquier subdominio de vercel.app
+    if (
+      !origin ||
+      origin.includes('localhost') ||
+      origin.endsWith('.vercel.app') ||
+      origin === process.env.CORS_ORIGIN
+    ) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -28,6 +30,7 @@ app.use(cors({
   },
   credentials: true,
 }));
+
 app.use(express.json());
 
 // ── Rutas públicas ──────────────────────────────────────────

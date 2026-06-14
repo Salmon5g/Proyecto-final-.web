@@ -34,7 +34,8 @@
             <tbody>
               <tr v-for="reg in registros" :key="reg.id">
                 <td><code>{{ reg.matricula }}</code></td>
-                <td>{{ reg.Plaza?.codigo ?? '—' }}</td>
+                <!-- ✅ FIX: 'plaza' en minúscula, igual que el alias del backend -->
+                <td>{{ reg.plaza?.codigo ?? '—' }}</td>
                 <td>{{ formatFecha(reg.entrada) }}</td>
                 <td>{{ reg.salida ? formatFecha(reg.salida) : '—' }}</td>
                 <td>{{ reg.importe != null ? `$${Number(reg.importe).toLocaleString('es-CL')}` : '—' }}</td>
@@ -87,8 +88,9 @@
               <!-- Matrícula -->
               <div class="mb-3">
                 <label class="form-label fw-semibold">Matrícula <span class="text-danger">*</span></label>
+                <!-- ✅ FIX: solo :value + @input, sin v-model (evita conflicto de binding) -->
                 <input
-                  v-model="form.matricula"
+                  :value="form.matricula"
                   type="text"
                   class="form-control font-monospace text-uppercase"
                   :placeholder="placeholderMatricula"
@@ -140,7 +142,8 @@
               <table class="table table-sm table-bordered">
                 <tbody>
                   <tr><th>Matrícula</th><td><code>{{ registroSalida?.matricula }}</code></td></tr>
-                  <tr><th>Plaza</th><td>{{ registroSalida?.Plaza?.codigo }}</td></tr>
+                  <!-- ✅ FIX: 'plaza' en minúscula -->
+                  <tr><th>Plaza</th><td>{{ registroSalida?.plaza?.codigo ?? '—' }}</td></tr>
                   <tr><th>Entrada</th><td>{{ formatFecha(registroSalida?.entrada) }}</td></tr>
                 </tbody>
               </table>
@@ -156,7 +159,8 @@
               <table class="table table-sm table-bordered">
                 <tbody>
                   <tr><th>Matrícula</th><td><code>{{ ticketSalida.matricula }}</code></td></tr>
-                  <tr><th>Plaza</th><td>{{ ticketSalida.Plaza?.codigo ?? '—' }}</td></tr>
+                  <!-- ✅ FIX: 'plaza' en minúscula -->
+                  <tr><th>Plaza</th><td>{{ ticketSalida.plaza?.codigo ?? '—' }}</td></tr>
                   <tr><th>Entrada</th><td>{{ formatFecha(ticketSalida.entrada) }}</td></tr>
                   <tr><th>Salida</th><td>{{ formatFecha(ticketSalida.salida) }}</td></tr>
                   <tr class="table-primary fw-bold">
@@ -282,19 +286,28 @@
   // ─── Matrícula helpers ────────────────────────────────────────────────────────
   
   function handleMatriculaInput(e) {
+    // Tomamos solo letras y números, todo en mayúsculas
     let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '')
   
     if (vehiculoEsMoto.value) {
-      // ABC12 — solo limpiar, sin guión
+      // Moto: ABC12 — máximo 5 chars, sin guión
       val = val.slice(0, 5)
     } else {
-      // AB-CD12 — insertar guión automáticamente en posición 2
+      // Auto/Discapacitado: AB-CD12 — guión automático después de 2 letras
+      val = val.slice(0, 6) // máximo 6 chars alfanuméricos (sin contar el guión)
       if (val.length > 2) {
-        val = val.slice(0, 2) + '-' + val.slice(2, 6)
+        val = val.slice(0, 2) + '-' + val.slice(2)
       }
     }
   
     form.value.matricula = val
+  
+    // Reposicionar el cursor al final (evita que salte al inicio)
+    nextTick(() => {
+      e.target.value = val
+      const pos = val.length
+      e.target.setSelectionRange(pos, pos)
+    })
   }
   
   function validarMatricula(matricula) {

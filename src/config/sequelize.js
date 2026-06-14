@@ -1,9 +1,10 @@
+// IMPORTANTE: debe estar ANTES de cualquier require que use pg
+// Evita fallo de TLS handshake en Railway con pg 8.x + Node 20
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 require('dotenv').config();
 
 const dbUrl = process.env.DATABASE_URL || '';
-const dialect = dbUrl.startsWith('postgresql') || dbUrl.startsWith('postgres')
-  ? 'postgres'
-  : 'mysql';
 
 module.exports = {
   development: {

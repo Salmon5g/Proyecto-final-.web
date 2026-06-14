@@ -1,11 +1,13 @@
+// IMPORTANTE: debe estar ANTES de cualquier require que use pg
+// Evita fallo de TLS handshake en Railway con pg 8.x + Node 20
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
 const { Sequelize } = require('sequelize');
 require('dotenv').config();
 
 let sequelize;
 
 if (process.env.DATABASE_URL) {
-  // Producción (Railway - PostgreSQL)
-  // Misma configuración SSL que sequelize.js (usada por la CLI que sí conecta)
   sequelize = new Sequelize(process.env.DATABASE_URL, {
     dialect: 'postgres',
     logging: false,
@@ -21,7 +23,6 @@ if (process.env.DATABASE_URL) {
     },
   });
 } else {
-  // Desarrollo local (MySQL)
   sequelize = new Sequelize(
     process.env.DB_NAME,
     process.env.DB_USER,
@@ -31,13 +32,8 @@ if (process.env.DATABASE_URL) {
       port: process.env.DB_PORT || 3306,
       dialect: 'mysql',
       logging: console.log,
-      dialectOptions: {
-        charset: 'utf8mb4',
-      },
-      define: {
-        timestamps: true,
-        underscored: true,
-      },
+      dialectOptions: { charset: 'utf8mb4' },
+      define: { timestamps: true, underscored: true },
     }
   );
 }

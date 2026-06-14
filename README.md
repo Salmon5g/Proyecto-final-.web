@@ -190,3 +190,13 @@ Body: { "tipo_pago": "efectivo" | "tarjeta" | "app" }
 
 **Cómo ejecutar la migración:**
 npm run db:migrate
+
+
+## 🚀 Producción
+
+| Servicio | URL |
+|----------|-----|
+| Frontend (Vercel) | https://proyecto-final-web-blond.vercel.app |
+| API (Railway)     | https://proyecto-final-web-production.up.railway.app |
+
+> Verificar API: `GET /api/v1/health`

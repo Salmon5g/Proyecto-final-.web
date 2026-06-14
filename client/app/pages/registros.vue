@@ -70,9 +70,7 @@
 >
   🚪 Salida
 </button>
-              <button class="btn btn-sm btn-danger" @click="confirmarEliminar(r)">
-                🗑️
-              </button>
+             
             </td>
           </tr>
         </tbody>
@@ -275,21 +273,7 @@ function abrirModalSalida(registro) {
   mostrarModalSalida.value = true
 }
 
-const confirmarSalida = async () => {
-  if (!registroSalida.value) return
-  errorSalida.value = ''
-  try {
-    const res  = await fetch(`${API}/registros/${registroSalida.value.id}/salida`, {
-      method: 'PUT', headers: headers(),
-    })
-    const data = await res.json()
-    if (!data.ok) { errorSalida.value = data.message; return }
-    ticketSalida.value = data.data
-    await cargarRegistros()
-  } catch {
-    errorSalida.value = 'Error al conectar con la API'
-  }
-}
+
 
 // Cerrar modal de salida limpiando el ticket
 const cerrarModalSalida = () => {

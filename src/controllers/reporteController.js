@@ -21,16 +21,18 @@ const sequelize = require('../config/database');
       : 'WHERE r.salida IS NOT NULL';
   
     const sql = `
-      SELECT
-        p.planta AS zona,
-        COUNT(r.id) AS total_registros,
-        SUM(r.importe) AS ingresos_totales,
-        AVG(TIMESTAMPDIFF(MINUTE, r.entrada, r.salida)) / 60 AS promedio_horas
-      FROM registros r
-      JOIN plazas p ON r.plaza_id = p.id
-      ${where}
-      GROUP BY p.planta
-      ORDER BY p.planta ASC
+     SELECT
+     p.planta AS zona,
+     COUNT(r.id) AS total_registros,
+     SUM(r.importe) AS ingresos_totales,
+     AVG(
+      EXTRACT(EPOCH FROM (r.salida - r.entrada)) / 3600
+     ) AS promedio_horas
+    FROM registros r
+    JOIN plazas p ON r.plaza_id = p.id
+    ${where}
+    GROUP BY p.planta
+    ORDER BY p.planta ASC
     `;
   
     const zonas = await sequelize.query(sql, {

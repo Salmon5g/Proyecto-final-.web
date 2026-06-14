@@ -37,11 +37,15 @@ app.use(cors({
 
 app.use(express.json());
 
+
+
 // ── Rutas públicas ──────────────────────────────────────────
 app.get('/api/v1/health', (req, res) => {
   res.json({ status: 'OK', message: 'API de estacionamiento funcionando 🚗' });
 });
 app.use('/api/v1/auth',      authRouter);
+// Health check para Railway
+app.get('/health', (req, res) => res.json({ ok: true }));
 
 // ── Rutas protegidas (requieren JWT) ────────────────────────
 app.use('/api/v1/plazas',    authenticate, plazasRouter);

@@ -32,7 +32,7 @@
           <tr>
             <th>Nombre</th>
             <th>Tipo de plaza</th>
-            <th class="text-right">Precio / hora</th>
+            <th class="text-right">Precio / min</th>
             <th class="text-center">Estado</th>
             <th class="text-center">Acciones</th>
           </tr>
@@ -46,7 +46,7 @@
               </span>
             </td>
             <td class="text-right precio">
-              {{ Math.round(Number(t.precio_hora)).toLocaleString('es-CL') }} CLP/h
+              {{ Math.round(Number(t.precio_minuto)).toLocaleString('es-CL') }} CLP/m
             </td>
             <td class="text-center">
               <span class="badge-estado" :class="t.activa ? 'activa' : 'inactiva'">
@@ -88,8 +88,8 @@
           </select>
         </div>
         <div class="form-group">
-          <label>Precio por hora (CLP)</label>
-          <input v-model.number="form.precio_hora" type="number" step="1" min="0" placeholder="1500" />
+          <label>Precio por minuto (CLP)</label>
+          <input v-model.number="form.precio_minuto" type="number" step="1" min="0" placeholder="25" />
         </div>
         <div class="form-check">
           <input v-model="form.activa" type="checkbox" id="chkActiva" />
@@ -114,7 +114,6 @@ import { ref, onMounted } from 'vue'
 const config = useRuntimeConfig()
 const API    = config.public.apiUrl
 
-// ── Estado ────────────────────────────────────────────────────
 const tarifas        = ref([])
 const loading        = ref(true)
 const error          = ref('')
@@ -124,9 +123,8 @@ const formError      = ref('')
 const guardando      = ref(false)
 const tarifaEditando = ref(null)
 
-const form = ref({ nombre: '', precio_hora: '', tipo_vehiculo: 'normal', activa: true })
+const form = ref({ nombre: '', precio_minuto: '', tipo_vehiculo: 'normal', activa: true })
 
-// ── Info por tipo (para las cards) ────────────────────────────
 const tiposInfo = [
   { value: 'normal',        label: 'Normal',        icon: '🚗', css: 'tipo-normal' },
   { value: 'discapacitado', label: 'Discapacitado', icon: '♿', css: 'tipo-disc' },
@@ -134,17 +132,14 @@ const tiposInfo = [
 ]
 const contarPorTipo = (tipo) => tarifas.value.filter(t => t.tipo_vehiculo === tipo).length
 
-// ── Helpers de badges ─────────────────────────────────────────
 const badgeTipo = (tipo) => ({ normal: 'badge-normal', discapacitado: 'badge-disc', moto: 'badge-moto' }[tipo] ?? '')
 const iconTipo  = (tipo) => ({ normal: '🚗', discapacitado: '♿', moto: '🏍️' }[tipo] ?? '?')
 
-// ── Auth ──────────────────────────────────────────────────────
 const headers = () => ({
   'Content-Type': 'application/json',
   Authorization: `Bearer ${localStorage.getItem('token')}`,
 })
 
-// ── Cargar ────────────────────────────────────────────────────
 const cargar = async () => {
   loading.value = true
   error.value   = ''
@@ -160,11 +155,10 @@ const cargar = async () => {
   }
 }
 
-// ── Modal ─────────────────────────────────────────────────────
 const abrirModalCrear = () => {
   modoEdicion.value    = false
   tarifaEditando.value = null
-  form.value = { nombre: '', precio_hora: '', tipo_vehiculo: 'normal', activa: true }
+  form.value = { nombre: '', precio_minuto: '', tipo_vehiculo: 'normal', activa: true }
   formError.value  = ''
   mostrarModal.value = true
 }
@@ -172,17 +166,16 @@ const abrirModalCrear = () => {
 const abrirModalEditar = (t) => {
   modoEdicion.value    = true
   tarifaEditando.value = t
-  form.value = { nombre: t.nombre, precio_hora: t.precio_hora, tipo_vehiculo: t.tipo_vehiculo, activa: t.activa }
+  form.value = { nombre: t.nombre, precio_minuto: t.precio_minuto, tipo_vehiculo: t.tipo_vehiculo, activa: t.activa }
   formError.value  = ''
   mostrarModal.value = true
 }
 
 const cerrarModal = () => { mostrarModal.value = false }
 
-// ── Guardar ───────────────────────────────────────────────────
 const guardar = async () => {
   formError.value = ''
-  if (!form.value.nombre || !form.value.precio_hora) {
+  if (!form.value.nombre || !form.value.precio_minuto) {
     formError.value = 'Nombre y precio son obligatorios'; return
   }
   guardando.value = true
@@ -201,7 +194,6 @@ const guardar = async () => {
   }
 }
 
-// ── Eliminar ──────────────────────────────────────────────────
 const eliminar = async (t) => {
   if (!confirm(`¿Eliminar la tarifa "${t.nombre}"?`)) return
   try {
@@ -220,7 +212,6 @@ onMounted(cargar)
 <style scoped>
 .tarifas-page { max-width: 960px; margin: 0 auto; padding: 2rem 1rem; }
 
-/* Header */
 .page-header {
   display: flex; justify-content: space-between;
   align-items: flex-start; margin-bottom: 1.75rem;
@@ -228,7 +219,6 @@ onMounted(cargar)
 .page-header h1 { margin: 0 0 0.25rem; font-size: 1.8rem; }
 .subtitle { color: #6b7280; margin: 0; font-size: 0.95rem; }
 
-/* Cards resumen */
 .tipo-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.75rem; }
 .tipo-card {
   display: flex; align-items: center; gap: 1rem;
@@ -245,7 +235,6 @@ onMounted(cargar)
 .tipo-moto   { background: #fffbeb; border-color: #fde68a; }
 .tipo-moto   .tipo-label { color: #d97706; }
 
-/* Tabla */
 .table-wrapper { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); overflow: hidden; }
 table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
 th {
@@ -261,7 +250,6 @@ tr:hover td { background: #fafafa; }
 .text-center { text-align: center; }
 .empty { text-align: center; padding: 3rem; color: #9ca3af; }
 
-/* Badge tipo */
 .badge-tipo {
   display: inline-flex; align-items: center; gap: 0.3rem;
   padding: 0.25rem 0.75rem; border-radius: 999px;
@@ -271,7 +259,6 @@ tr:hover td { background: #fafafa; }
 .badge-disc   { background: #ede9fe; color: #6d28d9; }
 .badge-moto   { background: #fef3c7; color: #b45309; }
 
-/* Badge estado */
 .badge-estado {
   display: inline-block; padding: 0.25rem 0.75rem;
   border-radius: 999px; font-size: 0.8rem; font-weight: 600;
@@ -279,7 +266,6 @@ tr:hover td { background: #fafafa; }
 .badge-estado.activa   { background: #dcfce7; color: #16a34a; }
 .badge-estado.inactiva { background: #f3f4f6; color: #6b7280; }
 
-/* Botones acción */
 .acciones { display: flex; gap: 0.4rem; justify-content: center; }
 .btn-outline-edit {
   border: 1px solid #93c5fd; color: #2563eb; background: transparent;
@@ -294,7 +280,6 @@ tr:hover td { background: #fafafa; }
 }
 .btn-outline-del:hover { background: #fef2f2; }
 
-/* Botones generales */
 .btn {
   padding: 0.5rem 1.1rem; border: none; border-radius: 8px;
   cursor: pointer; font-size: 0.9rem; font-weight: 500; transition: opacity 0.2s;
@@ -305,12 +290,10 @@ tr:hover td { background: #fafafa; }
 .btn:hover:not(:disabled) { opacity: 0.85; }
 .btn-sm { padding: 0.3rem 0.75rem; font-size: 0.82rem; }
 
-/* Alertas */
 .alert { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; font-size: 0.9rem; }
 .alert-error { background: #fee2e2; color: #b91c1c; }
 .loading { text-align: center; padding: 2rem; color: #6b7280; }
 
-/* Modal */
 .modal-overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.45);
   display: flex; align-items: center; justify-content: center; z-index: 50;
@@ -347,7 +330,6 @@ tr:hover td { background: #fafafa; }
 
 .modal-actions { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1rem; }
 
-/* Responsive */
 @media (max-width: 640px) {
   .tipo-cards { grid-template-columns: 1fr; }
 }

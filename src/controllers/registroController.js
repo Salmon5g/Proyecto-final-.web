@@ -66,7 +66,6 @@ const registrarEntrada = async (req, res) => {
 };
 
 // PUT /api/v1/registros/:id/salida
-// Body opcional: { tipo_pago: 'efectivo' | 'tarjeta' | 'app' }
 const registrarSalida = async (req, res) => {
   try {
     const TIPOS_PAGO_VALIDOS = ['efectivo', 'tarjeta', 'app'];
@@ -90,13 +89,13 @@ const registrarSalida = async (req, res) => {
     });
     if (!tarifa) tarifa = await Tarifa.findOne({ where: { activa: true } });
 
-    const precioPorHora = tarifa ? parseFloat(tarifa.precio_hora) : 2.50;
-    const tarifa_id     = tarifa ? tarifa.id : null;
+    const precioPorMinuto = tarifa ? parseFloat(tarifa.precio_minuto) : 10;
+    const tarifa_id       = tarifa ? tarifa.id : null;
 
-    const salida  = new Date();
-    const entrada = new Date(registro.entrada);
-    const horas   = Math.max(1, Math.ceil((salida - entrada) / (1000 * 60 * 60)));
-    const importe = (horas * precioPorHora).toFixed(2);
+    const salida   = new Date();
+    const entrada  = new Date(registro.entrada);
+    const minutos  = Math.max(1, Math.ceil((salida - entrada) / (1000 * 60)));
+    const importe  = (minutos * precioPorMinuto).toFixed(2);
 
     await registro.update({ salida, importe, tarifa_id, tipo_pago });
 
@@ -106,8 +105,8 @@ const registrarSalida = async (req, res) => {
       ok: true,
       data: {
         ...registro.toJSON(),
-        horas,
-        precio_hora: precioPorHora,
+        minutos,
+        precio_minuto: precioPorMinuto,
         tarifa_nombre: tarifa?.nombre || 'Tarifa base',
       },
     });

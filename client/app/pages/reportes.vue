@@ -69,7 +69,7 @@
             <tr style="background: #f8f9fa; text-align: left;">
               <th style="padding: 0.9rem 1.25rem; font-size: 0.85rem; color: #666; font-weight: 600;">Zona (Planta)</th>
               <th style="padding: 0.9rem 1.25rem; font-size: 0.85rem; color: #666; font-weight: 600;">Total registros</th>
-              <th style="padding: 0.9rem 1.25rem; font-size: 0.85rem; color: #666; font-weight: 600;">Promedio horas</th>
+              <th style="padding: 0.9rem 1.25rem; font-size: 0.85rem; color: #666; font-weight: 600;">Promedio minutos</th>
               <th style="padding: 0.9rem 1.25rem; font-size: 0.85rem; color: #666; font-weight: 600;">Ingresos</th>
               <th style="padding: 0.9rem 1.25rem; font-size: 0.85rem; color: #666; font-weight: 600;">% del total</th>
             </tr>
@@ -83,7 +83,7 @@
                 🅿️ Planta {{ z.zona === 0 ? 'Sin asignar' : z.zona }}
               </td>
               <td style="padding: 0.85rem 1.25rem;">{{ z.total_registros }}</td>
-              <td style="padding: 0.85rem 1.25rem;">{{ Number(z.promedio_horas).toFixed(1) }} h</td>
+              <td style="padding: 0.85rem 1.25rem;">{{ Number(z.promedio_minutos).toFixed(1) }} min</td>
               <td style="padding: 0.85rem 1.25rem; color: #2a9d8f; font-weight: 600;">
                 {{ formatCLP(z.ingresos_totales) }}
               </td>
